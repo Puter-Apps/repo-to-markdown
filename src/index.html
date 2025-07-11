@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>GitHub Repository to Markdown Converter - AI-Ready Codebase Export</title>
+    <meta name="title" content="GitHub Repository to Markdown Converter - AI-Ready Codebase Export">
+    <meta name="description" content="Convert any GitHub repository into a single Markdown file optimized for AI ingestion. Perfect for feeding codebases to LLMs, code analysis, and documentation. Free online tool with customizable filtering.">
+    <meta name="keywords" content="github, repository, markdown, converter, code, AI, LLM, artificial intelligence, codebase, export, concatenate, developer tools, code analysis">
+    <meta name="author" content="Nariman Jelveh">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://repo-to-markdown.com">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://repo-to-markdown.com">
+    <meta property="og:title" content="GitHub Repository to Markdown Converter - AI-Ready Codebase Export">
+    <meta property="og:description" content="Convert any GitHub repository into a single Markdown file optimized for AI ingestion. Perfect for feeding codebases to LLMs, code analysis, and documentation. Free online tool with customizable filtering.">
+    <meta property="og:image" content="https://repo-to-markdown.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Repo to Markdown Converter">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://repo-to-markdown.com">
+    <meta property="twitter:title" content="GitHub Repository to Markdown Converter - AI-Ready Codebase Export">
+    <meta property="twitter:description" content="Convert any GitHub repository into a single Markdown file optimized for AI ingestion. Perfect for feeding codebases to LLMs, code analysis, and documentation. Free online tool with customizable filtering.">
+    <meta property="twitter:image" content="https://repo-to-markdown.com/og-image.jpg">
+    <meta property="twitter:creator" content="@puter_com">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="msapplication-TileColor" content="#4F46E5">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://api.github.com">
+    <link rel="preconnect" href="https://github.com">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "GitHub Repository to Markdown Converter",
+        "description": "Convert any GitHub repository into a single Markdown file. Free online tool to extract and concatenate code files with customizable filtering options.",
+        "url": "https://repo-to-markdown.com",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "Puter Technologies Inc.",
+            "url": "https://puter.com"
+        },
+        "featureList": [
+            "Convert GitHub repositories to Markdown",
+            "AI-ready codebase export for LLMs",
+            "Optimized for code analysis and documentation",
+            "Skip large files automatically",
+            "Remove license headers",
+            "Customizable file filtering",
+            "Perfect for feeding codebases to AI models",
+            "Instant download"
+        ]
+    }
+    </script>
+</head>
+<body>
+    <a href="https://github.com/puter-apps/repo-to-markdown" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="View source code on GitHub">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+        </svg>
+        GitHub
+    </a>
+
+    <main class="container">
+        <div class="header">
+            <h1>Repo to Markdown Converter</h1>
+            <p>Convert a GitHub repository into a single Markdown file.</p>
+        </div>
+
+        <section class="form-container">
+        <form id="concatenateForm">
+            <div class="form-group">
+                <label for="repoUrl">GitHub Repository URL</label>
+                <input type="url" id="repoUrl" placeholder="https://github.com/username/repository or username/repository" value="https://github.com/heyputer/kv.js" required aria-describedby="repoUrlHelp">
+                <small id="repoUrlHelp" class="form-text">Enter the full GitHub URL or just username/repository</small>
+            </div>
+
+            <fieldset class="options">
+                <legend class="visually-hidden">Conversion Options</legend>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="skipLargeFiles" checked>
+                    <label for="skipLargeFiles">Skip large files (>1MB)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="removeLicenseHeaders" checked>
+                    <label for="removeLicenseHeaders">Remove license headers</label>
+                </div>
+            </fieldset>
+
+            <details class="collapsible-section">
+                <summary class="collapsible-header" id="skipPatternsHeader">
+                    <div>
+                        <div class="collapsible-title">Skip Files/Patterns</div>
+                        <div class="collapsible-subtitle" id="skipPatternsCount">Click to expand and edit patterns</div>
+                    </div>
+                    <div class="collapsible-toggle" id="skipPatternsToggle">▼</div>
+                </summary>
+                <div class="collapsible-content" id="skipPatternsContent">
+                    <label for="skipPatterns" class="visually-hidden">File patterns to skip</label>
+                    <textarea id="skipPatterns" spellcheck="false" rows="12" placeholder="Enter glob patterns to skip files..." aria-describedby="skipPatternsHelp">node_modules/
+.git/
+*.min.js
+*.min.css
+*.map
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+composer.lock
+Gemfile.lock
+Pipfile.lock
+poetry.lock
+Cargo.lock
+go.sum
+mix.lock
+pubspec.lock
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+__tests__/
+test/
+tests/
+.gitignore
+.gitattributes
+.editorconfig
+.prettierrc*
+.eslintrc*
+*.config.js
+*.config.ts
+*.config.json
+.env*
+.env.local
+.env.production
+.env.development
+.env.test
+.envrc
+.nvmrc
+.node-version
+.ruby-version
+.python-version
+.tool-versions
+tsconfig.json
+babel.config.js
+webpack.config.js
+vite.config.js
+jest.config.js
+*.md
+*.bundle.js
+*.chunk.js
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+*.whl
+.tox/
+venv/
+env/
+.pytest_cache/
+*.class
+*.jar
+*.war
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.pdb
+*.idb
+*.dSYM/
+core
+core.*
+.DS_Store
+Thumbs.db
+desktop.ini
+.directory
+*.log
+*.tmp
+*.temp
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.bmp
+*.tiff
+*.tif
+*.raw
+*.psd
+*.ai
+*.sketch
+*.fig
+*.xd
+*.eps
+*.indd
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bin
+*.dat
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+*.s3db
+*.mdb
+*.accdb
+*.dbf
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.wav
+*.flac
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+*.swp
+*.swo
+*~
+*.bak
+*.backup
+*.old
+*.orig
+logs/
+tmp/
+.gradle/
+.maven/
+.cargo/
+.nuget/
+cmake-build-*/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+coverage/
+.nyc_output/
+.cache/
+.fleet/
+.sublime-*
+.history/
+LICENSE
+LICENSE.txt
+LICENSE.md
+dist/
+build/
+out/
+target/
+bin/
+.vscode/
+.idea/</textarea>
+                    <small id="skipPatternsHelp" class="form-text">Use glob patterns to specify which files to exclude from the conversion</small>
+                </div>
+            </details>
+
+            <button type="submit" class="btn" id="concatenateBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                </svg>
+                <span>Convert to Markdown</span>
+            </button>
+            
+            <button type="button" class="btn btn-cancel" id="cancelBtn" style="display: none;">
+                <span>Cancel</span>
+            </button>
+        </form>
+
+        <div class="status-bar" id="status" role="status" aria-live="polite"></div>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <section class="file-info" id="fileInfo">
+            <div class="repo-stats" id="repoStats"></div>
+        </section>
+
+        <section class="download-section" id="downloadSection">
+            <button class="btn download-btn" id="downloadBtn">
+                <span>Download Markdown File</span>
+            </button>
+        </section>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    
+    <footer>
+        <a href="https://developer.puter.com" target="_blank" class="puter-powered-link">
+            Powered by Puter
+        </a>
+    </footer>
+</body>
+</html>
