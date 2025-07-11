@@ -31,19 +31,6 @@ git clone https://github.com/puter-apps/repo-to-markdown.git
 
 and open the `src/index.html` file in your browser. No hosting or server is required.
 
-## Default Skip Patterns
-
-The tool comes pre-configured to skip common files that are typically not needed in code analysis:
-
-- Dependencies: `node_modules/`, `package-lock.json`, `yarn.lock`, etc.
-- Build artifacts: `dist/`, `build/`, `*.min.js`, `*.bundle.js`
-- Configuration files: `.env*`, `*.config.js`, `tsconfig.json`
-- Version control: `.git/`, `.gitignore`, `.gitattributes`
-- Media files: `*.png`, `*.jpg`, `*.mp4`, `*.pdf`
-- Documentation: `*.md`, `LICENSE*`
-
-All patterns are customizable through the web interface.
-
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details. 
