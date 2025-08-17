@@ -94,7 +94,7 @@ async function getRepositoryFiles(repoUrlString) {
     try {
         console.log(`Fetching files from: ${repoUrlString}`);
         
-        let owner, repo;
+        let owner, repo, branch = null, subdirectory = '';
         
         // Check if it's a full URL or just owner/repo format
         if (repoUrlString.includes('github.com')) {
@@ -106,6 +106,14 @@ async function getRepositoryFiles(repoUrlString) {
             }
             owner = pathParts[0];
             repo = pathParts[1].replace(/\.git$/, '');
+            
+            // Check if this is a subdirectory URL (e.g., /owner/repo/tree/branch/path)
+            if (pathParts.length > 2 && pathParts[2] === 'tree' && pathParts.length > 3) {
+                branch = pathParts[3];
+                if (pathParts.length > 4) {
+                    subdirectory = pathParts.slice(4).join('/');
+                }
+            }
         } else {
             // Simple owner/repo format
             const parts = repoUrlString.split('/');
@@ -116,20 +124,29 @@ async function getRepositoryFiles(repoUrlString) {
             repo = parts[1];
         }
         
-        const branchesToTry = ['main', 'master', 'dev', 'develop'];
+        // If branch was specified in URL, try it first, otherwise use default branches
+        const branchesToTry = branch ? [branch, 'main', 'master', 'dev', 'develop'] : ['main', 'master', 'dev', 'develop'];
         let workingBranch = null;
         let filesList = [];
         
-        for (const branch of branchesToTry) {
+        for (const branchToTry of branchesToTry) {
             try {
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchToTry}?recursive=1`;
                 const treeResponse = await fetch(apiUrl, { signal: abortController?.signal });
                 
                 if (treeResponse.ok) {
                     const treeData = await treeResponse.json();
                     if (treeData.tree && treeData.tree.length > 0) {
-                        workingBranch = branch;
-                        filesList = treeData.tree.filter(item => item.type === 'blob');
+                        workingBranch = branchToTry;
+                        let allFiles = treeData.tree.filter(item => item.type === 'blob');
+                        
+                        // Filter files by subdirectory if specified
+                        if (subdirectory) {
+                            filesList = allFiles.filter(file => file.path.startsWith(subdirectory + '/'));
+                        } else {
+                            filesList = allFiles;
+                        }
+                        
                         break;
                     }
                 }
@@ -146,7 +163,8 @@ async function getRepositoryFiles(repoUrlString) {
         }
         
         if (filesList.length === 0) {
-            throw new Error(`Repository "${owner}/${repo}" appears to be empty.`);
+            const locationDesc = subdirectory ? `subdirectory "${subdirectory}" in repository "${owner}/${repo}"` : `repository "${owner}/${repo}"`;
+            throw new Error(`No files found in ${locationDesc}. Please verify the path exists.`);
         }
         
         return {
@@ -154,6 +172,7 @@ async function getRepositoryFiles(repoUrlString) {
             owner: owner,
             repo: repo,
             branch: workingBranch,
+            subdirectory: subdirectory,
             originalUrl: repoUrlString
         };
         
@@ -275,7 +294,11 @@ async function downloadAndConcatenateFiles(repoData, options) {
         try {
             const rawUrl = `https://raw.githubusercontent.com/${repoData.owner}/${repoData.repo}/${repoData.branch}/${file.path}`;
             
-            showStatus(`(${i + 1}/${filesToProcess.length}) Downloading ${file.path}`, 'info');
+            // Show the relative path from the subdirectory if applicable
+            const displayPath = repoData.subdirectory && file.path.startsWith(repoData.subdirectory + '/') 
+                ? file.path.substring(repoData.subdirectory.length + 1)
+                : file.path;
+            showStatus(`(${i + 1}/${filesToProcess.length}) Downloading ${displayPath}`, 'info');
             
             const response = await fetch(rawUrl, { signal: abortController?.signal });
             if (response.ok) {
@@ -291,7 +314,11 @@ async function downloadAndConcatenateFiles(repoData, options) {
                 }
                 
                 if (options.includeFilenames) {
-                    content += `// File: ${file.path}\n`;
+                    // Show the relative path from the subdirectory if applicable
+                    const displayPath = repoData.subdirectory && file.path.startsWith(repoData.subdirectory + '/') 
+                        ? file.path.substring(repoData.subdirectory.length + 1)
+                        : file.path;
+                    content += `// File: ${displayPath}\n`;
                     if (options.addSeparators) {
                         content += `${'='.repeat(80)}\n`;
                     }
@@ -416,7 +443,8 @@ function downloadConcatenatedFile() {
     }
     
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const filename = `${repoDetails.owner}-${repoDetails.repo}-${timestamp}.md`;
+    const subdirSuffix = repoDetails.subdirectory ? `-${repoDetails.subdirectory.replace(/\//g, '-')}` : '';
+    const filename = `${repoDetails.owner}-${repoDetails.repo}${subdirSuffix}-${timestamp}.md`;
     
     const blob = new Blob([concatenatedContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

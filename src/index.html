@@ -53,6 +53,8 @@
     
     <link rel="stylesheet" href="style.css">
     
+    <script defer data-domain="repo-to-markdown.com" src="https://plausible.io/js/script.js"></script>
+
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -104,8 +106,8 @@
         <form id="concatenateForm">
             <div class="form-group">
                 <label for="repoUrl">GitHub Repository URL</label>
-                <input type="url" id="repoUrl" placeholder="https://github.com/username/repository or username/repository" value="https://github.com/heyputer/kv.js" required aria-describedby="repoUrlHelp">
-                <small id="repoUrlHelp" class="form-text">Enter the full GitHub URL or just username/repository</small>
+                <input type="url" id="repoUrl" placeholder="https://github.com/username/repository or https://github.com/username/repository/tree/main/src" value="https://github.com/heyputer/kv.js" required aria-describedby="repoUrlHelp">
+                <small id="repoUrlHelp" class="form-text">Enter the full GitHub URL, subdirectory URL, or just username/repository</small>
             </div>
 
             <fieldset class="options">
