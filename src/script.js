@@ -377,10 +377,11 @@ ${directoryTree}\`\`\`
 
 `;
     let processedFiles = 0;
-    let skippedFiles = 0;
     let totalSize = 0;
     
     const filesToProcess = repoData.files.filter(file => !shouldSkipFile(file, options));
+    // Calculate initial skipped files (filtered out by patterns/options)
+    let skippedFiles = repoData.files.length - filesToProcess.length;
     
     if (filesToProcess.length === 0) {
         throw new Error('No files to process after applying filters.');
