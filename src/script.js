@@ -352,6 +352,21 @@ async function downloadAndConcatenateFiles(repoData, options) {
     
     hideProgress();
     
+    // Count tokens using gpt-tokenizer
+    let tokenCount = 0;
+    try {
+        if (typeof GPTTokenizer_o200k_base !== 'undefined') {
+            const tokens = GPTTokenizer_o200k_base.encode(content);
+            tokenCount = tokens.length;
+        }
+    } catch (error) {
+        console.warn('Token counting failed:', error);
+        tokenCount = 0;
+    }
+    
+    // Count total lines in the markdown content
+    const totalLines = content.split('\n').length;
+    
     // Update stats
     repoStats.innerHTML = `
         <div class="stat-item">
@@ -367,6 +382,14 @@ async function downloadAndConcatenateFiles(repoData, options) {
             <div class="stat-label">Total Size</div>
         </div>
         <div class="stat-item">
+            <div class="stat-value">${totalLines.toLocaleString()}</div>
+            <div class="stat-label">Total Lines</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${tokenCount.toLocaleString()}</div>
+            <div class="stat-label">Tokens (GPT)</div>
+        </div>
+        <div class="stat-item">
             <div class="stat-value">${repoData.files.length}</div>
             <div class="stat-label">Total Files</div>
         </div>
@@ -379,7 +402,9 @@ async function downloadAndConcatenateFiles(repoData, options) {
         stats: {
             processed: processedFiles,
             skipped: skippedFiles,
-            totalSize: totalSize
+            totalSize: totalSize,
+            totalLines: totalLines,
+            tokenCount: tokenCount
         }
     };
 }
