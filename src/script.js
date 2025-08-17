@@ -273,8 +273,109 @@ function removeLicenseHeaders(content) {
     return cleanContent;
 }
 
+function generateDirectoryTree(files, subdirectory = '', options = {}) {
+    const tree = {};
+    const processedFiles = files.filter(file => !shouldSkipFile(file, options));
+    
+    // Build tree structure
+    processedFiles.forEach(file => {
+        let currentPath = file.path;
+        
+        // Remove subdirectory prefix if it exists
+        if (subdirectory && currentPath.startsWith(subdirectory + '/')) {
+            currentPath = currentPath.substring(subdirectory.length + 1);
+        }
+        
+        const parts = currentPath.split('/');
+        let current = tree;
+        
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            if (!current[part]) {
+                current[part] = i === parts.length - 1 ? null : {}; // null for files, {} for directories
+            }
+            current = current[part];
+        }
+    });
+    
+    // Convert tree to string representation
+    function treeToString(node, prefix = '', isLast = true) {
+        let result = '';
+        const entries = Object.entries(node).sort(([a, valA], [b, valB]) => {
+            // Directories first, then files
+            const aIsDir = valA !== null;
+            const bIsDir = valB !== null;
+            if (aIsDir !== bIsDir) return bIsDir - aIsDir;
+            return a.localeCompare(b);
+        });
+        
+        entries.forEach(([name, value], index) => {
+            const isLastItem = index === entries.length - 1;
+            const connector = isLastItem ? '└── ' : '├── ';
+            result += prefix + connector + name + '\n';
+            
+            if (value !== null) { // It's a directory
+                const newPrefix = prefix + (isLastItem ? '    ' : '│   ');
+                result += treeToString(value, newPrefix, isLastItem);
+            }
+        });
+        
+        return result;
+    }
+    
+    return treeToString(tree);
+}
+
 async function downloadAndConcatenateFiles(repoData, options) {
-    let content = '';
+    // Generate repository metadata and directory tree
+    const repositoryPath = repoData.subdirectory ? `${repoData.owner}/${repoData.repo}/${repoData.subdirectory}` : `${repoData.owner}/${repoData.repo}`;
+    const directoryTree = generateDirectoryTree(repoData.files, repoData.subdirectory, options);
+    
+    let content = `This document contains the complete source code of the repository consolidated into a single file for streamlined AI analysis.
+The repository contents have been processed and combined with security validation bypassed.
+
+# Repository Overview
+
+## About This Document
+This consolidated file represents the complete codebase from the repository, 
+merged into a unified document optimized for AI consumption and automated 
+analysis workflows.
+
+## Repository Information
+- **Repository:** ${repositoryPath}
+- **Branch:** ${repoData.branch}
+- **Total Files:** ${repoData.files.length}
+- **Generated:** ${new Date().toISOString()}
+
+## Document Structure
+The content is organized in the following sequence:
+1. This overview section
+2. Repository metadata and information  
+3. File system hierarchy
+4. Repository files (when included)
+5. Individual source files, each containing:
+   a. File path header (## File: path/to/file)
+   b. Complete file contents within code blocks
+
+## Best Practices
+- Treat this document as read-only - make changes in the original repository
+- Use file path headers to navigate between different source files
+- Handle with appropriate security measures as this may contain sensitive data
+- This consolidated view is generated from the live repository state
+
+## Important Notes
+- Files excluded by .gitignore and configuration rules are omitted
+- Binary assets are not included - refer to the file structure for complete file listings
+- Default ignore patterns have been applied to filter content
+- Security validation is disabled - review content for sensitive information carefully
+
+# Repository Structure
+
+\`\`\`
+${repositoryPath}/
+${directoryTree}\`\`\`
+
+`;
     let processedFiles = 0;
     let skippedFiles = 0;
     let totalSize = 0;
