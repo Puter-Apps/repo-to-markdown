@@ -110,29 +110,40 @@
                 <small id="repoUrlHelp" class="form-text">Enter the full GitHub URL, subdirectory URL, or just username/repository</small>
             </div>
 
-            <fieldset class="options">
-                <legend class="visually-hidden">Conversion Options</legend>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="skipLargeFiles" checked>
-                    <label for="skipLargeFiles">Skip large files (>1MB)</label>
+            <div class="tab-container">
+                <div class="tabs" role="tablist">
+                    <button type="button" class="tab active" id="codeTabButton" data-tab-target="codeTab" role="tab" aria-controls="codeTab" aria-selected="true">
+                        Code to Markdown
+                    </button>
+                    <button type="button" class="tab" id="issuesTabButton" data-tab-target="issuesTab" role="tab" aria-controls="issuesTab" aria-selected="false">
+                        Issues to Markdown
+                    </button>
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="removeLicenseHeaders" checked>
-                    <label for="removeLicenseHeaders">Remove license headers</label>
-                </div>
-            </fieldset>
 
-            <details class="collapsible-section">
-                <summary class="collapsible-header" id="skipPatternsHeader">
-                    <div>
-                        <div class="collapsible-title">Skip Files/Patterns</div>
-                        <div class="collapsible-subtitle" id="skipPatternsCount">Click to expand and edit patterns</div>
-                    </div>
-                    <div class="collapsible-toggle" id="skipPatternsToggle">▼</div>
-                </summary>
-                <div class="collapsible-content" id="skipPatternsContent">
-                    <label for="skipPatterns" class="visually-hidden">File patterns to skip</label>
-                    <textarea id="skipPatterns" spellcheck="false" rows="12" placeholder="Enter glob patterns to skip files..." aria-describedby="skipPatternsHelp">node_modules/
+                <div class="tab-panel active" id="codeTab" role="tabpanel" aria-labelledby="codeTabButton">
+                    <fieldset class="options">
+                        <legend class="visually-hidden">Code Conversion Options</legend>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="skipLargeFiles" checked>
+                            <label for="skipLargeFiles">Skip large files (>1MB)</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="removeLicenseHeaders" checked>
+                            <label for="removeLicenseHeaders">Remove license headers</label>
+                        </div>
+                    </fieldset>
+
+                    <details class="collapsible-section">
+                        <summary class="collapsible-header" id="skipPatternsHeader">
+                            <div>
+                                <div class="collapsible-title">Skip Files/Patterns</div>
+                                <div class="collapsible-subtitle" id="skipPatternsCount">Click to expand and edit patterns</div>
+                            </div>
+                            <div class="collapsible-toggle" id="skipPatternsToggle">▼</div>
+                        </summary>
+                        <div class="collapsible-content" id="skipPatternsContent">
+                            <label for="skipPatterns" class="visually-hidden">File patterns to skip</label>
+                            <textarea id="skipPatterns" spellcheck="false" rows="12" placeholder="Enter glob patterns to skip files..." aria-describedby="skipPatternsHelp">node_modules/
 .git/
 *.min.js
 *.min.css
@@ -298,18 +309,43 @@ target/
 bin/
 .vscode/
 .idea/</textarea>
-                    <small id="skipPatternsHelp" class="form-text">Use glob patterns to specify which files to exclude from the conversion</small>
-                </div>
-            </details>
+                            <small id="skipPatternsHelp" class="form-text">Use glob patterns to specify which files to exclude from the conversion</small>
+                        </div>
+                    </details>
 
-            <button type="submit" class="btn" id="concatenateBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-                </svg>
-                <span>Convert to Markdown</span>
-            </button>
-            
+                    <button type="submit" class="btn" id="concatenateBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                        </svg>
+                        <span>Convert Code to Markdown</span>
+                    </button>
+                </div>
+
+                <div class="tab-panel" id="issuesTab" role="tabpanel" aria-labelledby="issuesTabButton" aria-hidden="true">
+                    <p class="tab-description">
+                        Export the repository’s open and closed issues (excluding pull requests) into a single Markdown file, including labels, assignees, milestones, and descriptions.
+                    </p>
+                    <fieldset class="options issues-options">
+                        <legend class="visually-hidden">Issue export filters</legend>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="issuesIncludeOpen" checked>
+                            <label for="issuesIncludeOpen">Include open issues</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="issuesIncludeClosed" checked>
+                            <label for="issuesIncludeClosed">Include closed issues</label>
+                        </div>
+                    </fieldset>
+                    <button type="button" class="btn btn-secondary" id="issuesBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-chat-left-text" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M14 1a1 1 0 0 1 1 1v9.793l-2.146-2.147A.5.5 0 0 0 12 9.5H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                            <path d="M3 3.5a.5.5 0 0 0 0 1h10a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h10a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1z"/>
+                        </svg>
+                        <span>Convert Issues to Markdown</span>
+                    </button>
+                </div>
+            </div>
             <button type="button" class="btn btn-cancel" id="cancelBtn" style="display: none;">
                 <span>Cancel</span>
             </button>

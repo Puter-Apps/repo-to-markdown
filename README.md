@@ -10,7 +10,7 @@
 
 ## About
 
-This is a simple, client-side tool that converts GitHub repositories into a single Markdown file. Perfect for feeding codebases to AI models, code analysis, documentation, or creating comprehensive overviews of your projects. The tool fetches repository files using the GitHub API and concatenates them with proper formatting and file headers.
+This is a simple, client-side tool that converts GitHub repositories into a single Markdown file. Perfect for feeding codebases to AI models, code analysis, documentation, or creating comprehensive overviews of your projects. The tool fetches repository files using the GitHub API and concatenates them with proper formatting and file headers. It can also export GitHub issues for a repository into Markdown, giving you an instant offline snapshot of your backlog or discussion history. Use the tabbed interface to toggle between code export settings and issue export controls, including checkboxes to include open issues, closed issues, or both.
 
 The browser networking capabilities are provided by [Puter.js](https://developer.puter.com/).
 
