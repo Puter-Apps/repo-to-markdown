@@ -1,5 +1,6 @@
 const repoUrlInput = document.getElementById('repoUrl');
 const concatenateBtn = document.getElementById('concatenateBtn');
+const issuesBtn = document.getElementById('issuesBtn');
 const statusDiv = document.getElementById('status');
 const progressContainer = document.getElementById('progressContainer');
 const progressBar = document.getElementById('progressBar');
@@ -7,11 +8,19 @@ const fileInfo = document.getElementById('fileInfo');
 const repoStats = document.getElementById('repoStats');
 const downloadSection = document.getElementById('downloadSection');
 const downloadBtn = document.getElementById('downloadBtn');
+const tabButtons = document.querySelectorAll('.tab');
+const tabPanels = document.querySelectorAll('.tab-panel');
+const includeOpenIssuesCheckbox = document.getElementById('issuesIncludeOpen');
+const includeClosedIssuesCheckbox = document.getElementById('issuesIncludeClosed');
 
 let concatenatedContent = '';
 let repoDetails = null;
+let currentExportType = 'repository';
 let abortController = null;
 const cancelBtn = document.getElementById('cancelBtn');
+let activeTab = 'codeTab';
+const defaultRepoButtonLabel = concatenateBtn.innerHTML;
+const defaultIssuesButtonLabel = issuesBtn.innerHTML;
 
 // Collapsible skip patterns
 const skipPatternsHeader = document.getElementById('skipPatternsHeader');
@@ -49,6 +58,21 @@ function toggleSkipPatterns() {
     }
 }
 
+function setActiveTab(tabId) {
+    activeTab = tabId;
+    tabButtons.forEach(button => {
+        const isActive = button.dataset.tabTarget === tabId;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive.toString());
+    });
+    
+    tabPanels.forEach(panel => {
+        const isActive = panel.id === tabId;
+        panel.classList.toggle('active', isActive);
+        panel.setAttribute('aria-hidden', (!isActive).toString());
+    });
+}
+
 function showStatus(message, type) {
     // Use innerHTML if message contains SVG, otherwise use textContent for safety
     if (message.includes('<svg')) {
@@ -83,46 +107,57 @@ function cancelOperation() {
 }
 
 function resetUIState() {
-    concatenateBtn.innerHTML = '<span>Convert to Markdown</span>';
+    concatenateBtn.innerHTML = defaultRepoButtonLabel;
+    issuesBtn.innerHTML = defaultIssuesButtonLabel;
     concatenateBtn.disabled = false;
+    issuesBtn.disabled = false;
     repoUrlInput.disabled = false;
     cancelBtn.style.display = 'none';
     hideProgress();
+}
+
+function parseRepositoryInput(repoUrlString) {
+    let owner, repo, branch = null, subdirectory = '';
+    
+    if (repoUrlString.includes('github.com')) {
+        const urlParts = new URL(repoUrlString);
+        const pathParts = urlParts.pathname.split('/').filter(part => part);
+        if (pathParts.length < 2) {
+            throw new Error('Invalid GitHub URL format. Please provide a valid repository URL.');
+        }
+        owner = pathParts[0];
+        repo = pathParts[1].replace(/\.git$/, '');
+        
+        if (pathParts.length > 2 && pathParts[2] === 'tree' && pathParts.length > 3) {
+            branch = pathParts[3];
+            if (pathParts.length > 4) {
+                subdirectory = pathParts.slice(4).join('/');
+            }
+        }
+    } else {
+        const parts = repoUrlString.split('/');
+        if (parts.length !== 2) {
+            throw new Error('Invalid repository format. Please use "owner/repository" format.');
+        }
+        owner = parts[0];
+        repo = parts[1];
+    }
+    
+    return {
+        owner,
+        repo,
+        branch,
+        subdirectory,
+        originalUrl: repoUrlString
+    };
 }
 
 async function getRepositoryFiles(repoUrlString) {
     try {
         console.log(`Fetching files from: ${repoUrlString}`);
         
-        let owner, repo, branch = null, subdirectory = '';
-        
-        // Check if it's a full URL or just owner/repo format
-        if (repoUrlString.includes('github.com')) {
-            // Full URL format
-            const urlParts = new URL(repoUrlString);
-            const pathParts = urlParts.pathname.split('/').filter(part => part);
-            if (pathParts.length < 2) {
-                throw new Error('Invalid GitHub URL format. Please provide a valid repository URL.');
-            }
-            owner = pathParts[0];
-            repo = pathParts[1].replace(/\.git$/, '');
-            
-            // Check if this is a subdirectory URL (e.g., /owner/repo/tree/branch/path)
-            if (pathParts.length > 2 && pathParts[2] === 'tree' && pathParts.length > 3) {
-                branch = pathParts[3];
-                if (pathParts.length > 4) {
-                    subdirectory = pathParts.slice(4).join('/');
-                }
-            }
-        } else {
-            // Simple owner/repo format
-            const parts = repoUrlString.split('/');
-            if (parts.length !== 2) {
-                throw new Error('Invalid repository format. Please use "owner/repository" format.');
-            }
-            owner = parts[0];
-            repo = parts[1];
-        }
+        const repoInfo = parseRepositoryInput(repoUrlString);
+        const { owner, repo, branch, subdirectory } = repoInfo;
         
         // If branch was specified in URL, try it first, otherwise use default branches
         const branchesToTry = branch ? [branch, 'main', 'master', 'dev', 'develop'] : ['main', 'master', 'dev', 'develop'];
@@ -168,12 +203,9 @@ async function getRepositoryFiles(repoUrlString) {
         }
         
         return {
+            ...repoInfo,
             files: filesList,
-            owner: owner,
-            repo: repo,
-            branch: workingBranch,
-            subdirectory: subdirectory,
-            originalUrl: repoUrlString
+            branch: workingBranch
         };
         
     } catch (error) {
@@ -511,6 +543,143 @@ ${directoryTree}\`\`\`
     };
 }
 
+async function fetchRepositoryIssues(repoInfo) {
+    const { owner, repo } = repoInfo;
+    const issues = [];
+    let page = 1;
+    let truncated = false;
+    const maxPages = 10; // Limit to 1000 issues
+    
+    while (true) {
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=100&page=${page}`;
+        const response = await fetch(apiUrl, { signal: abortController?.signal });
+        
+        if (response.status === 404) {
+            throw new Error(`Could not access issues for repository "${owner}/${repo}". Please verify the repository exists and is public.`);
+        }
+        
+        if (!response.ok) {
+            throw new Error(`GitHub Issues API error (HTTP ${response.status}).`);
+        }
+        
+        const pageData = await response.json();
+        if (!Array.isArray(pageData) || pageData.length === 0) {
+            break;
+        }
+        
+        const filteredIssues = pageData.filter(issue => !issue.pull_request);
+        issues.push(...filteredIssues);
+        
+        if (pageData.length < 100) {
+            break;
+        }
+        
+        page++;
+        if (page > maxPages) {
+            truncated = true;
+            break;
+        }
+    }
+    
+    return { issues, truncated };
+}
+
+function generateIssuesMarkdown(repoInfo, issues, options = {}) {
+    const { truncated = false, includeOpen = true, includeClosed = true } = options;
+    const repositoryPath = `${repoInfo.owner}/${repoInfo.repo}`;
+    const generatedAt = new Date().toISOString();
+    const openIssues = issues.filter(issue => issue.state === 'open').length;
+    const closedIssues = issues.filter(issue => issue.state === 'closed').length;
+    const includedStates = [
+        includeOpen ? 'Open' : null,
+        includeClosed ? 'Closed' : null
+    ].filter(Boolean).join(', ') || 'None';
+    
+    let content = `# Issues Export for ${repositoryPath}
+
+- **Generated:** ${generatedAt}
+- **Total Issues:** ${issues.length}
+- **Open Issues:** ${openIssues}
+- **Closed Issues:** ${closedIssues}
+- **Included States:** ${includedStates}
+
+This document consolidates GitHub issues into a single Markdown file for review, backups, or AI ingestion.
+`;
+    
+    if (truncated) {
+        content += `\n> ⚠️ Only the first ${issues.length} matching issues are included due to API pagination limits.\n`;
+    }
+    
+    if (issues.length === 0) {
+        content += `\nNo issues were found for this repository with the current filters.\n`;
+        return content;
+    }
+    
+    content += `\n---\n`;
+    
+    issues.forEach(issue => {
+        const labels = issue.labels?.length
+            ? issue.labels.map(label => typeof label === 'string' ? label : label.name).join(', ')
+            : 'None';
+        const milestone = issue.milestone ? issue.milestone.title : 'None';
+        const assignees = issue.assignees && issue.assignees.length 
+            ? issue.assignees.map(a => a.login).join(', ')
+            : 'None';
+        
+        content += `
+## #${issue.number}: ${issue.title}
+
+- **State:** ${issue.state.toUpperCase()}
+- **Author:** ${issue.user?.login || 'Unknown'}
+- **Created:** ${issue.created_at || 'N/A'}
+- **Updated:** ${issue.updated_at || 'N/A'}
+- **Closed:** ${issue.closed_at || 'N/A'}
+- **Comments:** ${issue.comments ?? 0}
+- **Labels:** ${labels}
+- **Milestone:** ${milestone}
+- **Assignees:** ${assignees}
+- **URL:** ${issue.html_url}
+`;
+        
+        if (issue.body && issue.body.trim()) {
+            content += `\n### Description\n\n${issue.body}\n`;
+        } else {
+            content += `\n_No description provided._\n`;
+        }
+        
+        content += `\n---\n`;
+    });
+    
+    return content;
+}
+
+function updateIssueStats(stats) {
+    repoStats.innerHTML = `
+        <div class="stat-item">
+            <div class="stat-value">${stats.total}</div>
+            <div class="stat-label">Total Issues</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${stats.open}</div>
+            <div class="stat-label">Open Issues</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${stats.closed}</div>
+            <div class="stat-label">Closed Issues</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">${stats.latestUpdated || 'N/A'}</div>
+            <div class="stat-label">Latest Update</div>
+        </div>
+        ${stats.filter ? `
+        <div class="stat-item">
+            <div class="stat-value">${stats.filter}</div>
+            <div class="stat-label">Included States</div>
+        </div>` : ''}
+    `;
+    fileInfo.style.display = 'block';
+}
+
 async function concatenateRepository(repoUrlString) {
     const originalBtnHTML = concatenateBtn.innerHTML;
     
@@ -519,6 +688,7 @@ async function concatenateRepository(repoUrlString) {
         abortController = new AbortController();
         
         concatenateBtn.disabled = true;
+        issuesBtn.disabled = true;
         repoUrlInput.disabled = true;
         cancelBtn.style.display = 'block';
         downloadSection.style.display = 'none';
@@ -530,6 +700,7 @@ async function concatenateRepository(repoUrlString) {
         
         const repoData = await getRepositoryFiles(repoUrlString);
         repoDetails = repoData;
+        currentExportType = 'repository';
         
         const options = {
             includeFilenames: true, // Always true
@@ -557,6 +728,106 @@ async function concatenateRepository(repoUrlString) {
     } finally {
         concatenateBtn.innerHTML = originalBtnHTML;
         concatenateBtn.disabled = false;
+        issuesBtn.disabled = false;
+        repoUrlInput.disabled = false;
+        cancelBtn.style.display = 'none';
+        abortController = null;
+    }
+}
+
+async function exportIssuesToMarkdown(repoUrlString) {
+    const originalBtnHTML = issuesBtn.innerHTML;
+    const includeOpenIssues = includeOpenIssuesCheckbox ? includeOpenIssuesCheckbox.checked : true;
+    const includeClosedIssues = includeClosedIssuesCheckbox ? includeClosedIssuesCheckbox.checked : true;
+    const selectedFilters = [
+        includeOpenIssues ? 'Open' : null,
+        includeClosedIssues ? 'Closed' : null
+    ].filter(Boolean);
+    
+    if (!includeOpenIssues && !includeClosedIssues) {
+        showStatus('Select at least one issue state (open and/or closed) to export.', 'error');
+        return;
+    }
+    
+    try {
+        abortController = new AbortController();
+        
+        issuesBtn.disabled = true;
+        concatenateBtn.disabled = true;
+        repoUrlInput.disabled = true;
+        cancelBtn.style.display = 'block';
+        downloadSection.style.display = 'none';
+        fileInfo.style.display = 'none';
+        hideProgress();
+        
+        issuesBtn.innerHTML = '<span class="loading-spinner"></span>Fetching issues...';
+        showStatus(`Fetching ${selectedFilters.join(' & ')} issues...`, 'info');
+        
+        const repoInfo = parseRepositoryInput(repoUrlString);
+        const issueData = await fetchRepositoryIssues(repoInfo);
+        const filteredIssues = issueData.issues.filter(issue => {
+            if (issue.state === 'open' && includeOpenIssues) return true;
+            if (issue.state === 'closed' && includeClosedIssues) return true;
+            return false;
+        });
+        
+        if (filteredIssues.length === 0) {
+            showStatus('No issues match the selected filters. Please adjust and try again.', 'error');
+            downloadSection.style.display = 'none';
+            fileInfo.style.display = 'none';
+            return;
+        }
+        
+        showStatus('Generating Markdown...', 'info');
+        concatenatedContent = generateIssuesMarkdown(repoInfo, filteredIssues, {
+            truncated: issueData.truncated,
+            includeOpen: includeOpenIssues,
+            includeClosed: includeClosedIssues
+        });
+        repoDetails = {
+            owner: repoInfo.owner,
+            repo: repoInfo.repo,
+            branch: null,
+            subdirectory: '',
+            originalUrl: repoUrlString
+        };
+        currentExportType = 'issues';
+        
+        const latestUpdatedIssue = filteredIssues.reduce((latest, issue) => {
+            if (!latest) {
+                return issue;
+            }
+            const latestTime = latest.updated_at ? new Date(latest.updated_at).getTime() : 0;
+            const issueTime = issue.updated_at ? new Date(issue.updated_at).getTime() : 0;
+            return issueTime > latestTime ? issue : latest;
+        }, null);
+        
+        const openedCount = filteredIssues.filter(issue => issue.state === 'open').length;
+        const closedCount = filteredIssues.filter(issue => issue.state === 'closed').length;
+        
+        updateIssueStats({
+            total: filteredIssues.length,
+            open: openedCount,
+            closed: closedCount,
+            latestUpdated: latestUpdatedIssue?.updated_at
+                ? new Date(latestUpdatedIssue.updated_at).toISOString().split('T')[0]
+                : null,
+            filter: selectedFilters.join(' + ')
+        });
+        
+        downloadSection.style.display = 'block';
+        showStatus(`Successfully converted ${filteredIssues.length} ${selectedFilters.join(' & ').toLowerCase()} issues to Markdown.`, 'success');
+        
+    } catch (error) {
+        if (error.message === 'Operation cancelled') {
+            return;
+        }
+        showStatus(`❌ Error: ${error.message}`, 'error');
+        console.error('Issue export error:', error);
+    } finally {
+        issuesBtn.innerHTML = originalBtnHTML;
+        issuesBtn.disabled = false;
+        concatenateBtn.disabled = false;
         repoUrlInput.disabled = false;
         cancelBtn.style.display = 'none';
         abortController = null;
@@ -570,8 +841,11 @@ function downloadConcatenatedFile() {
     }
     
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const subdirSuffix = repoDetails.subdirectory ? `-${repoDetails.subdirectory.replace(/\//g, '-')}` : '';
-    const filename = `${repoDetails.owner}-${repoDetails.repo}${subdirSuffix}-${timestamp}.md`;
+    const subdirSuffix = currentExportType === 'repository' && repoDetails.subdirectory 
+        ? `-${repoDetails.subdirectory.replace(/\//g, '-')}` 
+        : '';
+    const typeSuffix = currentExportType === 'issues' ? '-issues' : '';
+    const filename = `${repoDetails.owner}-${repoDetails.repo}${subdirSuffix}${typeSuffix}-${timestamp}.md`;
     
     const blob = new Blob([concatenatedContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -587,37 +861,62 @@ function downloadConcatenatedFile() {
     showStatus(`Downloaded ${filename}`, 'success');
 }
 
+function validateRepoInput(repoUrl) {
+    if (!repoUrl) {
+        showStatus('Please enter a GitHub repository URL.', 'error');
+        return false;
+    }
+    
+    const isUrl = repoUrl.includes('github.com');
+    const isRepoFormat = repoUrl.includes('/') && !repoUrl.includes('github.com');
+    
+    if (!isUrl && !isRepoFormat) {
+        showStatus('Please enter a valid GitHub repository URL (e.g., https://github.com/username/repository or username/repository).', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const target = button.dataset.tabTarget;
+        if (target) {
+            setActiveTab(target);
+        }
+    });
+});
+
 // Event listeners
 document.getElementById('concatenateForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     hideStatus();
     
     const repoUrl = repoUrlInput.value.trim();
-    if (!repoUrl) {
-        showStatus('Please enter a GitHub repository URL.', 'error');
+    if (!validateRepoInput(repoUrl)) {
         return;
     }
-
-    // Validate input format
-    const isUrl = repoUrl.includes('github.com');
-    const isRepoFormat = repoUrl.includes('/') && !repoUrl.includes('github.com');
     
-    if (!isUrl && !isRepoFormat) {
-        showStatus('Please enter a valid GitHub repository URL (e.g., https://github.com/username/repository or username/repository).', 'error');
-        return;
-    }
-
     await concatenateRepository(repoUrl);
 });
 
 downloadBtn.addEventListener('click', downloadConcatenatedFile);
 
 cancelBtn.addEventListener('click', cancelOperation);
+issuesBtn.addEventListener('click', async () => {
+    hideStatus();
+    const repoUrl = repoUrlInput.value.trim();
+    if (!validateRepoInput(repoUrl)) {
+        return;
+    }
+    await exportIssuesToMarkdown(repoUrl);
+});
 
 // Collapsible skip patterns event listeners
 skipPatternsHeader.addEventListener('click', toggleSkipPatterns);
 skipPatternsTextarea.addEventListener('input', updateSkipPatternsCount);
 
 // Initialize
+setActiveTab('codeTab');
 hideStatus();
 updateSkipPatternsCount();

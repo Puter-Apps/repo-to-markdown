@@ -195,6 +195,54 @@ textarea {
     min-height: 300px;
 }
 
+.tab-container {
+    margin-top: 25px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 25px rgba(15, 23, 42, 0.12);
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab.active {
+    color: #1f2937;
+    border-color: #4f46e5;
+}
+
+.tab-panel {
+    display: none;
+    margin-top: 15px;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.tab-description {
+    margin-bottom: 20px;
+    color: #475569;
+    line-height: 1.6;
+}
+
 /* Fieldset styling */
 fieldset {
     border: none;
@@ -245,10 +293,25 @@ fieldset.options {
     height: 45px;
 }
 
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .btn:hover:not(:disabled) {
     background: linear-gradient(135deg, #2c3e50, #1a252f);
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca, #312e81);
+    box-shadow: 0 8px 20px rgba(67, 56, 202, 0.35);
 }
 
 .btn:disabled {
