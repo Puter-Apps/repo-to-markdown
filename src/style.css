@@ -206,26 +206,35 @@ textarea {
 
 .tabs {
     display: flex;
-    gap: 10px;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 6px;
+    padding: 6px;
     margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #f1f5f9;
 }
 
 .tab {
     flex: 1;
-    padding: 12px;
+    padding: 12px 18px;
     border: none;
     background: transparent;
+    border-radius: 999px;
     font-weight: 600;
     cursor: pointer;
-    color: #64748b;
-    border-bottom: 3px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    color: #475569;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tab:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.35);
+    outline-offset: 2px;
 }
 
 .tab.active {
-    color: #1f2937;
-    border-color: #4f46e5;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
 }
 
 .tab-panel {
