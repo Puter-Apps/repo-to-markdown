@@ -119,6 +119,8 @@ function resetUIState() {
 function parseRepositoryInput(repoUrlString) {
     let owner, repo, branch = null, subdirectory = '';
     
+    const normalizeSubdirectory = (path) => path ? path.replace(/^\/+|\/+$/g, '') : '';
+    
     if (repoUrlString.includes('github.com')) {
         const urlParts = new URL(repoUrlString);
         const pathParts = urlParts.pathname.split('/').filter(part => part);
@@ -128,10 +130,22 @@ function parseRepositoryInput(repoUrlString) {
         owner = pathParts[0];
         repo = pathParts[1].replace(/\.git$/, '');
         
-        if (pathParts.length > 2 && pathParts[2] === 'tree' && pathParts.length > 3) {
-            branch = pathParts[3];
-            if (pathParts.length > 4) {
-                subdirectory = pathParts.slice(4).join('/');
+        if (pathParts.length > 2) {
+            const routeType = pathParts[2];
+            
+            if ((routeType === 'tree' || routeType === 'blob') && pathParts.length > 3) {
+                branch = pathParts[3];
+                if (pathParts.length > 4) {
+                    subdirectory = normalizeSubdirectory(pathParts.slice(4).join('/'));
+                }
+            } else if (routeType === 'raw' && pathParts.length > 3) {
+                branch = pathParts[3];
+                subdirectory = normalizeSubdirectory(pathParts.slice(4).join('/'));
+            } else {
+                const specialRoutes = new Set(['issues', 'pulls', 'pull', 'actions', 'commits', 'releases']);
+                if (!specialRoutes.has(routeType)) {
+                    subdirectory = normalizeSubdirectory(pathParts.slice(2).join('/'));
+                }
             }
         }
     } else {
